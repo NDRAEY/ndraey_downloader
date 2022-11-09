@@ -9,7 +9,7 @@ pub async fn progress(url: String, path: String) {
     let res = reqwest::Client::builder()
         .user_agent("Mozilla/5.0")
         .build().unwrap()
-        .get(url)
+        .get(url.clone())
         .send()
         .await
         .or(Err("Failed to make GET request!"))
@@ -22,6 +22,9 @@ pub async fn progress(url: String, path: String) {
         .unwrap();
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
+
+    let splitted = url.split("/").collect::<Vec<&str>>();
+    let name = splitted[splitted.len() - 1];
 
     while let Some(item) = stream.next().await {
         let chunk = item.or(Err(format!("Error while downloading file"))).unwrap();
