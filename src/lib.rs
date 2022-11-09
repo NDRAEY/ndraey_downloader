@@ -31,7 +31,8 @@ pub async fn progress(url: String, path: String) {
         downloaded = new;
 
         let ntsize: f64 = total_size.unwrap() as f64;
-		print!("[{:.1}%]   {:.0} of {:.0} kB\r",
+		print!("[{}] [{:.1}%]   [{:.0} / {:.0} kB]\r",
+				name,
 				 (new as f64/ntsize)*100_f64,
 				 new as f64/1024_f64,
 				 ntsize/1024_f64);
