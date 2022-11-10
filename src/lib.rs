@@ -1,3 +1,6 @@
+// A simple module for downloadibg large files
+// by NDRAEY (c) 2022
+
 use reqwest;
 use std::fs::File;
 use std::cmp::min;
@@ -5,6 +8,7 @@ use std::io::Write;
 use futures_util::StreamExt;
 use std::io;
 
+// Download file from {url} divided by chunks with progress bar
 pub async fn progress(url: String, path: String) {
     let res = reqwest::Client::builder()
         .user_agent("Mozilla/5.0")
