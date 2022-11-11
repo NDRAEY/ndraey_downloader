@@ -1,7 +1,7 @@
 /// A simple module for downloading large files
 /// by NDRAEY (c) 2022
 
-use reqwest;
+// use reqwest;
 use std::fs::File;
 use std::cmp::min;
 use std::io::Write;
@@ -18,17 +18,13 @@ pub async fn progress(url: String, path: String) -> bool {
         .await
         .or(Err("Failed to make GET request!"));
 
-	let res: reqwest::Response;
-
-    match _res {
+	let res: reqwest::Response = match _res {
     	Err(err) => {
     		println!("[ndraey_downloader] Failed to send request! (Error: {})", err);
 			return false;
     	}
-    	Ok(d) => {
-    		res = d;
-    	}
-    }
+    	Ok(d) => d
+    };
     
     let total_size = res.content_length();
 
@@ -43,9 +39,9 @@ pub async fn progress(url: String, path: String) -> bool {
     let name = splitted[splitted.len() - 1];
 
     while let Some(item) = stream.next().await {
-        let chunk = item.or(Err(format!("Error while downloading file"))).unwrap();
+        let chunk = item.or(Err(format!("Error while downloading file: {}", url.clone()))).unwrap();
         let _result = file.write_all(&chunk)
-                     .or(Err(format!("Error while writing to file")));
+                     .or(Err(format!("Error while writing to file: {}", path.clone())));
         let new = min(downloaded + (chunk.len() as u64), total_size.unwrap());
         downloaded = new;
 
