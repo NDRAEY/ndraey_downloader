@@ -1,5 +1,5 @@
-// A simple module for downloading large files
-// by NDRAEY (c) 2022
+/// A simple module for downloading large files
+/// by NDRAEY (c) 2022
 
 use reqwest;
 use std::fs::File;
@@ -8,7 +8,7 @@ use std::io::Write;
 use futures_util::StreamExt;
 use std::io;
 
-// Download file from {url} divided by chunks with progress bar
+/// Download file from {url} divided by chunks with progress bar
 pub async fn progress(url: String, path: String) -> bool {
     let mut _res = reqwest::Client::builder()
         .user_agent("Mozilla/5.0")
@@ -39,12 +39,12 @@ pub async fn progress(url: String, path: String) -> bool {
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
 
-    let splitted = path.split("/").collect::<Vec<&str>>();
+    let splitted = path.split('/').collect::<Vec<&str>>();
     let name = splitted[splitted.len() - 1];
 
     while let Some(item) = stream.next().await {
         let chunk = item.or(Err(format!("Error while downloading file"))).unwrap();
-        let result = file.write_all(&chunk)
+        let _result = file.write_all(&chunk)
                      .or(Err(format!("Error while writing to file")));
         let new = min(downloaded + (chunk.len() as u64), total_size.unwrap());
         downloaded = new;
@@ -57,9 +57,9 @@ pub async fn progress(url: String, path: String) -> bool {
 				 percent,
 				 new as f64/1024_f64,
 				 ntsize/1024_f64,
-				 "/".to_string().repeat(chars));
+				 "=".to_string().repeat(chars));
         io::stdout().flush().unwrap();
     }
     println!();
-    return true;
+    true
 }
