@@ -1,6 +1,6 @@
 [package]
 name = "ndraey_downloader"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 author = ["NDRAEY <pikachu_andrey@vk.com>"]
 description = "A simple library for downloading files"
