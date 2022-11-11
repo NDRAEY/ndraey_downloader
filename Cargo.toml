@@ -5,6 +5,8 @@ edition = "2021"
 author = ["NDRAEY <pikachu_andrey@vk.com>"]
 description = "A simple library for downloading files"
 license = "GPL-3.0-or-later"
+repository = "https://github.com/NDRAEY/ndraey_downloader"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
