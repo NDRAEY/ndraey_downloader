@@ -39,7 +39,7 @@ pub async fn progress(url: String, path: String) -> bool {
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
 
-    let splitted = url.split("/").collect::<Vec<&str>>();
+    let splitted = path.split("/").collect::<Vec<&str>>();
     let name = splitted[splitted.len() - 1];
 
     while let Some(item) = stream.next().await {
@@ -50,11 +50,14 @@ pub async fn progress(url: String, path: String) -> bool {
         downloaded = new;
 
         let ntsize: f64 = total_size.unwrap() as f64;
-		print!("[{}] [{:.1}%]   [{:.0} / {:.0} kB]\r",
+		let percent = (new as f64/ntsize)*100_f64;
+		let chars = ((new as f64/ntsize)*20_f64) as usize;
+		print!("[{}] [{:.1}%] [{:.0} / {:.0} kB] [{:20}]\r",
 				name,
-				 (new as f64/ntsize)*100_f64,
+				 percent,
 				 new as f64/1024_f64,
-				 ntsize/1024_f64);
+				 ntsize/1024_f64,
+				 "/".to_string().repeat(chars));
         io::stdout().flush().unwrap();
     }
     println!();
