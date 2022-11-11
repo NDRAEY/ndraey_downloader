@@ -1,4 +1,4 @@
-// A simple module for downloadibg large files
+// A simple module for downloading large files
 // by NDRAEY (c) 2022
 
 use reqwest;
@@ -9,15 +9,27 @@ use futures_util::StreamExt;
 use std::io;
 
 // Download file from {url} divided by chunks with progress bar
-pub async fn progress(url: String, path: String) {
-    let res = reqwest::Client::builder()
+pub async fn progress(url: String, path: String) -> bool {
+    let mut _res = reqwest::Client::builder()
         .user_agent("Mozilla/5.0")
         .build().unwrap()
         .get(url.clone())
         .send()
         .await
-        .or(Err("Failed to make GET request!"))
-        .unwrap();
+        .or(Err("Failed to make GET request!"));
+
+	let res: reqwest::Response;
+
+    match _res {
+    	Err(err) => {
+    		println!("[ndraey_downloader] Failed to send request! (Error: {})", err);
+			return false;
+    	}
+    	Ok(d) => {
+    		res = d;
+    	}
+    }
+    
     let total_size = res.content_length();
 
     let mut file =
@@ -46,4 +58,5 @@ pub async fn progress(url: String, path: String) {
         io::stdout().flush().unwrap();
     }
     println!();
+    return true;
 }
