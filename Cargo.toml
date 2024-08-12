@@ -2,7 +2,7 @@
 name = "ndraey_downloader"
 version = "0.1.6"
 edition = "2021"
-author = ["NDRAEY <pikachu_andrey@vk.com>"]
+authors = ["NDRAEY <pikachu_andrey@vk.com>"]
 description = "A simple library for downloading files"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/NDRAEY/ndraey_downloader"
@@ -14,3 +14,6 @@ repository = "https://github.com/NDRAEY/ndraey_downloader"
 futures-util = "0.3.14"
 reqwest = { version = "0.11.12", features = ["stream"] }
 tokio = { version = "1.21.2", features = ["full"] }
+
+[[example]]
+name = "ndraey_download"

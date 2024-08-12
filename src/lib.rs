@@ -60,11 +60,11 @@ pub async fn progress(url: String, path: String) -> bool {
             path.clone()
         )));
         
-        let new = min(downloaded + (chunk.len() as u64), total_size.unwrap());
+        let new = min(downloaded + (chunk.len() as u64), total_size.unwrap_or(1));
         downloaded = new;
         downloaded_in_sec += chunk.len() as usize;
 
-        let ntsize: f64 = total_size.unwrap() as f64;
+        let ntsize: f64 = total_size.unwrap_or(1) as f64;
         let percent = (new as f64 / ntsize) * 100_f64;
         let chars = ((new as f64 / ntsize) * 20_f64) as usize;
 
@@ -80,7 +80,7 @@ pub async fn progress(url: String, path: String) -> bool {
         }
 
         print!(
-            "[{}] [{:.1}%] [{} kB/s] [{:.0} / {:.0} kB] [{:20}]\r",
+            "[{}] [{:.1}%] [{} kB/s] [{:.0} / {:.0} kB] [{:20}]\x1b[K\r",
             name,
             percent,
             speed/1024,
