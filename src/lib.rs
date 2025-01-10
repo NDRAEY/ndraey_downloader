@@ -2,11 +2,32 @@ use futures_util::StreamExt;
 use std::cmp::min;
 /// A simple module for downloading large files
 /// by NDRAEY (c) 2022
-// use reqwest;
+use reqwest::Client;
 use std::fs::File;
 use std::io;
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+/*pub struct Downloader {
+	echo: bool,
+	user_agent: String,
+	client: Client
+}
+
+impl Downloader {
+	pub fn new() -> Self {
+		let default_user_agent = "Mozilla/5.0";
+
+		let client = Client::builder()
+			.user_agent(default_user_agent)
+			.build()
+		
+		Self {
+			echo: true,
+			user_agent: default_user_agent
+		}
+	}
+}*/
 
 /// Download file from {url} divided by chunks with progress bar
 pub async fn progress(url: String, path: String) -> bool {
