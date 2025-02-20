@@ -1,67 +1,65 @@
+use colored::Colorize;
 use futures_util::StreamExt;
-use std::cmp::min;
-/// A simple module for downloading large files
-/// by NDRAEY (c) 2022
-use reqwest::Client;
+use reqwest;
 use std::fs::File;
-use std::io;
-use std::io::Write;
+use std::io::{stdout, Write};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/*pub struct Downloader {
-	echo: bool,
-	user_agent: String,
-	client: Client
+fn format_bytes(bytes: f64) -> String {
+    const KB: f64 = 1024.0;
+    const MB: f64 = KB * 1024.0;
+    const GB: f64 = MB * 1024.0;
+
+    if bytes < KB {
+        format!("{:.2} B", bytes)
+    } else if bytes < MB {
+        format!("{:.2} kB", bytes / KB)
+    } else if bytes < GB {
+        format!("{:.2} MB", bytes / MB)
+    } else {
+        format!("{:.2} GB", bytes / GB)
+    }
 }
 
-impl Downloader {
-	pub fn new() -> Self {
-		let default_user_agent = "Mozilla/5.0";
-
-		let client = Client::builder()
-			.user_agent(default_user_agent)
-			.build()
-		
-		Self {
-			echo: true,
-			user_agent: default_user_agent
-		}
-	}
-}*/
-
-/// Download file from {url} divided by chunks with progress bar
 pub async fn progress(url: String, path: String) -> bool {
-    let mut _res = reqwest::Client::builder()
+    let client = match reqwest::Client::builder()
         .user_agent("Mozilla/5.0")
         .build()
-        .unwrap()
-        .get(url.clone())
-        .send()
-        .await
-        .or(Err("Failed to make GET request!"));
-
-    let res: reqwest::Response = match _res {
+    {
+        Ok(c) => c,
         Err(err) => {
-            println!(
-                "[ndraey_downloader] Failed to send request! (Error: {})",
-                err
-            );
+            println!("[DOWNLOADER] Failed to build client! (Error: {})", err);
             return false;
         }
-        Ok(d) => d,
     };
 
-    let total_size = res.content_length();
+    let res = match client.get(url.clone()).send().await {
+        Ok(response) => response,
+        Err(err) => {
+            println!("[DOWNLOADER] Failed to send request! (Error: {})", err);
+            return false;
+        }
+    };
 
-    let mut file = File::create(path.clone())
-        .or(Err(format!("Failed to create file '{}'", path.clone())))
-        .unwrap();
+    let total_size = match res.content_length() {
+        Some(size) => size,
+        None => {
+            println!("[DOWNLOADER] Failed to get content length!");
+            return false;
+        }
+    };
+
+    let mut file = match File::create(&path) {
+        Ok(file) => file,
+        Err(err) => {
+            println!("[DOWNLOADER] Failed to create file '{}': {}", path, err);
+            return false;
+        }
+    };
+
     let mut downloaded: u64 = 0;
     let mut downloaded_in_sec: usize = 0;
     let mut stream = res.bytes_stream();
-
-    let splitted = path.split('/').collect::<Vec<&str>>();
-    let name = splitted[splitted.len() - 1];
 
     let mut sys_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -70,46 +68,46 @@ pub async fn progress(url: String, path: String) -> bool {
     let mut speed: usize = 0;
 
     while let Some(item) = stream.next().await {
-        let chunk = item
-            .or(Err(format!(
-                "Error while downloading file: {}",
-                url.clone()
-            )))
-            .unwrap();
-        let _result = file.write_all(&chunk).or(Err(format!(
-            "Error while writing to file: {}",
-            path.clone()
-        )));
-        
-        let new = min(downloaded + (chunk.len() as u64), total_size.unwrap_or(1));
-        downloaded = new;
+        let chunk = match item {
+            Ok(chunk) => chunk,
+            Err(err) => {
+                println!("[DOWNLOADER] Error while downloading file: {}", err);
+                return false;
+            }
+        };
+
+        if let Err(err) = file.write_all(&chunk) {
+            println!(
+                "[DOWNLOADER] Error while writing to file '{}': {}",
+                path, err
+            );
+            return false;
+        }
+
+        downloaded += chunk.len() as u64;
         downloaded_in_sec += chunk.len() as usize;
 
-        let ntsize: f64 = total_size.unwrap_or(1) as f64;
-        let percent = (new as f64 / ntsize) * 100_f64;
-        let chars = ((new as f64 / ntsize) * 20_f64) as usize;
+        let percent = (downloaded as f64 / total_size as f64) * 100.0;
 
-        let newtime = SystemTime::now()
+        let new_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time error")
             .as_secs();
-            
-        if newtime > sys_time + 1 {
+
+        if new_time > sys_time {
             speed = downloaded_in_sec;
             downloaded_in_sec = 0;
-            sys_time = newtime;
+            sys_time = new_time;
         }
 
         print!(
-            "[{}] [{:.1}%] [{} kB/s] [{:.0} / {:.0} kB] [{:20}]\x1b[K\r",
-            name,
-            percent,
-            speed/1024,
-            new as f64 / 1024_f64,
-            ntsize / 1024_f64,
-            "=".to_string().repeat(chars)
+            "\r[{}/s] [{} / {} ~ ({}%)]\x1b[K",
+            format_bytes(speed as f64).yellow().bold(),
+            format_bytes(downloaded as f64).green(),
+            format_bytes(total_size as f64).green().bold(),
+            (percent as usize).to_string().bold().red()
         );
-        io::stdout().flush().unwrap();
+        stdout().flush().unwrap();
     }
     println!();
     true
